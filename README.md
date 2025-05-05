@@ -6,17 +6,29 @@ Description : This dataset is derived from a hydraulic test rig equipped with va
 Key Features:
 Sensors Included:
 Pressure
+
 Motor Power
+
 Volume Flow
+
 Temperature
+
 Vibration
+
 Cooling Efficiency
+
 Cooling Power
+
 Efficiency Factor
+
 Target Variable: Stable Flag (Indicates whether the system is operational)
+
 Data Format: Multivariate time-series data
+
 Instances: 2,205
+
 Attributes: 43,680 (comprising various sensor readings)
+
 Sampling Rate: 1 Hz (for most sensors)
 
 
