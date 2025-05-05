@@ -6,7 +6,9 @@ Description : This dataset is derived from a hydraulic test rig equipped with va
 
 
 Key Features:
+
 Sensors Included:
+
 Pressure
 
 Motor Power
@@ -37,6 +39,7 @@ Sampling Rate: 1 Hz (for most sensors)
 
 
 🧪 Intended Use
+
 This dataset is ideal for:
 
 Developing machine learning models for fault detection and classification.
@@ -50,6 +53,7 @@ Benchmarking hydraulic system monitoring tools.
 
 
 📄License
+
 This dataset is licensed under a Creative Commons Attribution 4.0 International (CC BY 4.0) license.
 
 
