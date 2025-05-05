@@ -32,6 +32,8 @@ Attributes: 43,680 (comprising various sensor readings)
 Sampling Rate: 1 Hz (for most sensors)
 
 
+
+
 🧪 Intended Use
 This dataset is ideal for:
 
