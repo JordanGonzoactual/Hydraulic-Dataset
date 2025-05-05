@@ -3,7 +3,8 @@ import numpy as np
 import pickle
 import os
 
-directory_path = 'D:/Python/Hydraulic rig Dataset'
+sensor_path = 'D:/Python/Hydraulic rig Dataset/Raw Data'
+profile_path = 'D:/Python/Hydraulic rig Dataset'
 
 # 2. Helper function to read a file robustly
 def read_file_robust(filepath, sep=r"\s+"):
@@ -30,28 +31,33 @@ def read_file_robust(filepath, sep=r"\s+"):
             on_bad_lines="skip"
         )
 
-# 3. Identify sensor files and the profile file
+# 3. Identify sensor files
 sensor_files = []
-profile_file = None
-
-for filename in os.listdir(directory_path):
-    file_path = os.path.join(directory_path, filename)
+for filename in os.listdir(sensor_path):
+    file_path = os.path.join(sensor_path, filename)
     
-    # Skip directories
     if not os.path.isfile(file_path):
         continue
     
-    # Skip files that are documentation or description files
     lower_filename = filename.lower()
     if "documentation" in lower_filename or "description" in lower_filename:
         continue
     
-    # If it's the profile file, store it separately
+    if lower_filename.endswith(".txt"):
+        sensor_files.append(file_path)
+
+# Identify profile file
+profile_file = None
+for filename in os.listdir(profile_path):
+    file_path = os.path.join(profile_path, filename)
+    
+    if not os.path.isfile(file_path):
+        continue
+    
+    lower_filename = filename.lower()
     if lower_filename.startswith("profile") and lower_filename.endswith(".txt"):
         profile_file = file_path
-    # Otherwise, assume it's a sensor data file if it ends with .txt
-    elif lower_filename.endswith(".txt"):
-        sensor_files.append(file_path)
+        break
 
 # 4. Read sensor files into DataFrames with encoded column names
 sensor_dfs = []
@@ -59,14 +65,11 @@ for sf in sensor_files:
     base_name = os.path.splitext(os.path.basename(sf))[0]  # e.g. "PS5"
     print(f"Reading sensor file: {os.path.basename(sf)}")
     
-    # Read sensor file data
     df_sensor = read_file_robust(sf, sep=r"\s+")
-    
-    # Rename columns to reflect the file name + index (e.g., PS5_1, PS5_2, ...)
     df_sensor.columns = [f"{base_name}_{i+1}" for i in range(df_sensor.shape[1])]
     sensor_dfs.append(df_sensor)
 
-# 5. Combine all sensor DataFrames column-wise (assuming same number of rows)
+# 5. Combine all sensor DataFrames column-wise
 if sensor_dfs:
     sensor_data_df = pd.concat(sensor_dfs, axis=1)
     print(f"Combined sensor data shape: {sensor_data_df.shape}")
@@ -75,12 +78,11 @@ if sensor_dfs:
 else:
     sensor_data_df = pd.DataFrame()
 
-# 6. Read the profile file (target dataset) separately
+# 6. Read profile file
 if profile_file is not None:
     print(f"Reading profile file: {os.path.basename(profile_file)}")
     profile_df = read_file_robust(profile_file, sep=r"\s+")
     
-    # Expected column names for profile data (if exactly 4 columns)
     expected_profile_cols = ["cooler_condition", "valve_condition", "pump_leakage", "accumulator_condition"]
     if profile_df.shape[1] == 4:
         profile_df.columns = expected_profile_cols
@@ -98,18 +100,14 @@ print(sensor_data_df.head())
 print(sensor_data_df.shape[0])
 print(sensor_data_df.shape[1])
 
-
-profile_df.drop(["profile_1",  "profile_2",  "profile_3",  "profile_4",], axis=1, inplace=True)
+profile_df.drop(["profile_1", "profile_2", "profile_3", "profile_4"], axis=1, inplace=True)
 profile_df.rename(columns={"profile_5": "Target"}, inplace=True)
-
 
 print("Profile Data Preview:")
 print(profile_df.head())
 print(profile_df.head())
 print(profile_df.shape[0])
 print(profile_df.shape[1])
-
-
 
 # 8. Pickle the DataFrames separately
 sensor_pickle_path = r"D:\Python\Hydraulic Rig Dataset\Data\sensor_data_df.pkl"
