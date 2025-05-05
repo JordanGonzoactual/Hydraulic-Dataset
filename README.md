@@ -1,7 +1,9 @@
 📘Dataset Overview
 
 Data Source : https://archive.ics.uci.edu/dataset/447/condition+monitoring+of+hydraulic+systems
+
 Description : This dataset is derived from a hydraulic test rig equipped with various sensors to monitor system performance under different conditions. The data includes measurements such as pressure, motor power, volume flow, temperature, vibration, cooling efficiency, cooling power, and efficiency factor. The primary objective is to classify the operational status of the hydraulic system using the 'stable flag' as the target variable.
+
 
 Key Features:
 Sensors Included:
