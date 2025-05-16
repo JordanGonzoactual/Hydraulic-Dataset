@@ -1,5 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import time
+from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn.metrics import (
@@ -12,36 +14,61 @@ from sklearn.metrics import (
 )
 
 def load_data():
-    # Load CSV files
+    # Load the already prepared pickled datasets
     try:
-        profile_data = pd.read_csv('../Data/profile.txt')
-        labels_data = pd.read_csv('../Data/profiles_labels.txt')
-        print(f"Data loaded successfully: {profile_data.shape}, {labels_data.shape}")
-        return profile_data, labels_data
+        import os
+        import pickle
+        
+        # Get paths to the data directory
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(current_dir)
+        data_dir = os.path.join(project_root, 'Data')
+        
+        # Paths to pickled train/test data
+        x_train_path = os.path.join(data_dir, 'X_train_pickled.pkl')
+        x_test_path = os.path.join(data_dir, 'X_test_pickled.pkl')
+        y_train_path = os.path.join(data_dir, 'y_train_pickled.pkl')
+        y_test_path = os.path.join(data_dir, 'y_test_pickled.pkl')
+        
+        # Load the data directly
+        X_train = pd.read_pickle(x_train_path)
+        X_test = pd.read_pickle(x_test_path)
+        y_train = pd.read_pickle(y_train_path)
+        y_test = pd.read_pickle(y_test_path)
+        
+        print(f"Data loaded successfully")
+        print(f"Training set shape: {X_train.shape}, {y_train.shape}")
+        print(f"Test set shape: {X_test.shape}, {y_test.shape}")
+        
+        return X_train, X_test, y_train, y_test
     except Exception as e:
         print(f"Error loading data: {e}")
-        return None, None
-
-def preprocess_data(profile_data, labels_data):
-    # Preprocessing steps
-    # Extracting features and target variable
-    X = profile_data.iloc[:, 1:]  # All feature columns
-    y = labels_data.iloc[:, 1]    # Target variable (second column in labels data)
-    
-    # Perform train-test split
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
-    
-    print(f"Training set shape: {X_train.shape}, {y_train.shape}")
-    print(f"Test set shape: {X_test.shape}, {y_test.shape}")
-    
-    return X_train, X_test, y_train, y_test
+        return None, None, None, None
 
 def train_model(X_train, y_train):
     # Logistic Regression CV model
+    print("Initializing LogisticRegressionCV model...")
     model = LogisticRegressionCV(cv=5, max_iter=1000, random_state=1)
-    model.fit(X_train, y_train)
+    
+    # Initialize progress bar for training
+    print("Starting model training with progress tracking...")
+    with tqdm(total=100, desc='Training model', bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]') as pbar:
+        # Create a custom fit method that updates the progress bar
+        orig_fit = model.fit
+        
+        # Define a wrapper to update progress during training
+        def fit_with_progress(*args, **kwargs):
+            result = orig_fit(*args, **kwargs)
+            # Update progress bar to show completion
+            pbar.update(100)
+            return result
+        
+        # Replace the original fit method with our progress-tracking version
+        model.fit = fit_with_progress
+        
+        # Start training
+        model.fit(X_train, y_train)
+        
     print("Model trained successfully")
     return model
 
@@ -89,24 +116,55 @@ def plot_roc_curve(model, X_test, y_test):
     return roc_auc
 
 def main():
-    # Load data
-    profile_data, labels_data = load_data()
-    if profile_data is None or labels_data is None:
-        return
-    
-    # Preprocess data
-    X_train, X_test, y_train, y_test = preprocess_data(profile_data, labels_data)
-    
-    # Train model
-    model = train_model(X_train, y_train)
-    
-    # Evaluate model
-    accuracy, report, cm = evaluate_model(model, X_test, y_test)
-    
-    # Plot ROC Curve
-    roc_auc = plot_roc_curve(model, X_test, y_test)
-    
-    print(f"Model training and evaluation completed. AUC: {roc_auc:.4f}")
+    try:
+        # Load data - now directly returns train/test splits
+        X_train, X_test, y_train, y_test = load_data()
+        if X_train is None:
+            return
+        
+        print("Starting model training...")
+        # Train model
+        try:
+            model = train_model(X_train, y_train)
+            print("Model training successful")
+        except Exception as e:
+            print(f"Error during model training: {e}")
+            import traceback
+            traceback.print_exc()
+            return
+        
+        print("Starting model evaluation...")
+        # Evaluate model
+        try:
+            accuracy, report, cm = evaluate_model(model, X_test, y_test)
+            print("Model evaluation successful")
+        except Exception as e:
+            print(f"Error during model evaluation: {e}")
+            import traceback
+            traceback.print_exc()
+            return
+        
+        print("Starting ROC curve plotting...")
+        # Plot ROC Curve - making this non-blocking
+        try:
+            # Setting interactive mode for matplotlib to prevent blocking
+            plt.ion()
+            roc_auc = plot_roc_curve(model, X_test, y_test)
+            # Save figure instead of showing it interactively
+            plt.savefig('roc_curve.png')
+            plt.close()
+            print(f"ROC curve saved to roc_curve.png")
+        except Exception as e:
+            print(f"Error during ROC curve plotting: {e}")
+            import traceback
+            traceback.print_exc()
+            return
+        
+        print(f"Model training and evaluation completed. AUC: {roc_auc:.4f}")
+    except Exception as e:
+        print(f"Unexpected error in main function: {e}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     main()
