@@ -53,21 +53,10 @@ def train_model(X_train, y_train):
     # Initialize progress bar for training
     print("Starting model training with progress tracking...")
     with tqdm(total=100, desc='Training model', bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]') as pbar:
-        # Create a custom fit method that updates the progress bar
-        orig_fit = model.fit
-        
-        # Define a wrapper to update progress during training
-        def fit_with_progress(*args, **kwargs):
-            result = orig_fit(*args, **kwargs)
-            # Update progress bar to show completion
-            pbar.update(100)
-            return result
-        
-        # Replace the original fit method with our progress-tracking version
-        model.fit = fit_with_progress
-        
-        # Start training
+        # Train the model
         model.fit(X_train, y_train)
+        # Update progress bar to show completion
+        pbar.update(100)
         
     print("Model trained successfully")
     return model
@@ -127,6 +116,25 @@ def main():
         try:
             model = train_model(X_train, y_train)
             print("Model training successful")
+            
+            # Save the model using pickle
+            try:
+                import os
+                import pickle
+                
+                # Create models directory if it doesn't exist
+                models_dir = os.path.dirname(os.path.abspath(__file__))
+                os.makedirs(models_dir, exist_ok=True)
+                
+                # Save the model to a pickle file
+                model_path = os.path.join(models_dir, 'logistic_regression_model.pkl')
+                with open(model_path, 'wb') as f:
+                    pickle.dump(model, f)
+                print(f"Model successfully saved to {model_path}")
+            except Exception as e:
+                print(f"Error saving model: {e}")
+                import traceback
+                traceback.print_exc()
         except Exception as e:
             print(f"Error during model training: {e}")
             import traceback
