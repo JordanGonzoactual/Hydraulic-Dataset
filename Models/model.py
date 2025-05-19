@@ -2,8 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import time
 from tqdm import tqdm
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegressionCV
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import (
     accuracy_score,
     classification_report,
@@ -45,21 +45,61 @@ def load_data():
         print(f"Error loading data: {e}")
         return None, None, None, None
 
-def train_model(X_train, y_train):
-    # Logistic Regression CV model
-    print("Initializing LogisticRegressionCV model...")
-    model = LogisticRegressionCV(cv=5, max_iter=1000, random_state=1)
+def train_model(X_train, y_train, n_iter=20, cv=5):
+    # Define parameter distribution for random search
+    print("Setting up RandomizedSearchCV for hyperparameter tuning...")
+    param_dist = {
+        'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000],
+        'penalty': ['l1', 'l2', 'elasticnet', None],
+        'solver': ['newton-cg', 'lbfgs', 'liblinear', 'sag', 'saga'],
+        'max_iter': [100, 500, 1000, 2000],
+        'class_weight': [None, 'balanced'],
+        'random_state': [1]
+    }
+    
+    # Create base logistic regression model
+    base_model = LogisticRegression()
+    
+    # Create RandomizedSearchCV object
+    random_search = RandomizedSearchCV(
+        estimator=base_model,
+        param_distributions=param_dist,
+        n_iter=n_iter,  # Number of parameter settings sampled
+        cv=cv,          # Cross-validation folds
+        scoring='roc_auc',
+        n_jobs=-1,      # Use all available cores
+        verbose=1,
+        random_state=1
+    )
     
     # Initialize progress bar for training
-    print("Starting model training with progress tracking...")
-    with tqdm(total=100, desc='Training model', bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]') as pbar:
-        # Train the model
-        model.fit(X_train, y_train)
-        # Update progress bar to show completion
-        pbar.update(100)
-        
-    print("Model trained successfully")
-    return model
+    print(f"Starting random search with {n_iter} iterations and {cv}-fold CV...")
+    start_time = time.time()
+    
+    # Fit the random search model
+    random_search.fit(X_train, y_train)
+    
+    # Print training time
+    training_time = time.time() - start_time
+    print(f"Random search completed in {training_time:.2f} seconds")
+    
+    # Print best parameters
+    print("\nBest Parameters:")
+    for param, value in random_search.best_params_.items():
+        print(f"{param}: {value}")
+    
+    print(f"\nBest CV Score: {random_search.best_score_:.4f}")
+    
+    # Print CV results
+    print("\nCV Results:")
+    means = random_search.cv_results_['mean_test_score']
+    stds = random_search.cv_results_['std_test_score']
+    params = random_search.cv_results_['params']
+    for mean, std, params in zip(means, stds, params):
+        print(f"Mean: {mean:.4f}, Std: {std:.4f}, Params: {params}")
+    
+    print("\nBest model selected successfully")
+    return random_search.best_estimator_
 
 def evaluate_model(model, X_test, y_test):
     # Make predictions
@@ -127,7 +167,7 @@ def main():
                 os.makedirs(models_dir, exist_ok=True)
                 
                 # Save the model to a pickle file
-                model_path = os.path.join(models_dir, 'logistic_regression_model.pkl')
+                model_path = os.path.join(models_dir, 'logistic_regression_tuned_model.pkl')
                 with open(model_path, 'wb') as f:
                     pickle.dump(model, f)
                 print(f"Model successfully saved to {model_path}")
