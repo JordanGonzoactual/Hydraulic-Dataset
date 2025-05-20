@@ -161,6 +161,26 @@ Confusion Matrix:
 
 ### Threshold-Optimized SMOTE Model
 
+**Classification Report:**
+```
+Model: smote_logistic_regression with Optimal Threshold
+Accuracy: 0.9456
+
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.98      0.94      0.96       294
+           1       0.89      0.95      0.92       147
+
+    accuracy                           0.95       441
+   macro avg       0.93      0.95      0.94       441
+weighted avg       0.95      0.95      0.95       441
+
+Confusion Matrix:
+[[277  17]
+ [  7 140]]
+```
+
 **Confusion Matrix:**
 
 ![SMOTE Model with Threshold Tuning Confusion Matrix](Models/reports/smote_logistic_regression_threshold_confusion_matrix.png)
