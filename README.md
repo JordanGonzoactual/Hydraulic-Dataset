@@ -46,6 +46,59 @@
    - Reshaped sensor data into 3D format (instances × channels × timepoints)
    - Applied MinMax scaling to normalized transformed features
 
+## 📊 Exploratory Data Analysis (EDA) Visualizations
+
+### Dimensionality Reduction Visualizations
+
+#### PCA (Principal Component Analysis)
+
+**Standard Model PCA**
+
+![Standard PCA Plot](Data/eda/pca.png)
+
+**SMOTE-Enhanced Model PCA**
+
+![SMOTE PCA Plot](Data/eda/pca_smote.png)
+
+The PCA plots provide a 2D representation of the high-dimensional sensor data, showing how well different classes separate in the reduced feature space. Key observations:
+
+- Distinct clustering patterns between operational (Class 1) and non-operational (Class 0) states
+- Comparison between original and SMOTE-augmented data distribution in reduced dimensionality space
+- Areas of overlap between classes indicate potential challenges for classification
+
+#### t-SNE (t-Distributed Stochastic Neighbor Embedding)
+
+**Standard Model t-SNE**
+
+![Standard t-SNE Plot](Data/eda/tsne.png)
+
+**SMOTE-Enhanced Model t-SNE**
+
+![SMOTE t-SNE Plot](Data/eda/tsne_smote.png)
+
+The t-SNE visualizations offer a non-linear dimensionality reduction that preserves local structure, revealing:
+
+- More pronounced clustering compared to PCA due to t-SNE's ability to capture non-linear relationships
+- Visual comparison of cluster formations between original and synthetic data points
+- Clearer decision boundaries between classes, particularly in the SMOTE-enhanced visualization
+
+#### DBSCAN Clustering with t-SNE
+
+**Standard Model DBSCAN**
+
+![Standard DBSCAN t-SNE Plot](Data/eda/dbscan_tsne.png)
+
+**SMOTE-Enhanced Model DBSCAN**
+
+![SMOTE DBSCAN t-SNE Plot](Data/eda/dbscan_tsne_smote.png)
+
+Density-based spatial clustering of applications with noise (DBSCAN) applied to t-SNE dimensions reveals:
+
+- Natural cluster formations within the dataset without pre-specifying the number of clusters
+- Identification of potential noise or outlier points (if any)
+- Comparison of cluster density and distribution between original and SMOTE-enhanced data
+- Insights into the underlying structure of the hydraulic system operational states
+
 ## 🤖 Modeling Approaches
 
 ### Logistic Regression with Hyperparameter Tuning
