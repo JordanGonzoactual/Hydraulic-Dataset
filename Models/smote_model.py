@@ -1,132 +1,111 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LogisticRegressionCV
-from sklearn.metrics import (
-    accuracy_score,
-    classification_report,
-    confusion_matrix,
-    roc_curve,
-    auc,
-    ConfusionMatrixDisplay
-)
+import time
+import os
+import pickle
+import traceback
 from imblearn.over_sampling import SMOTE  # For handling class imbalance
 
+# Import functions from model.py
+from model import train_model, evaluate_model, plot_roc_curve
+
 def load_data():
-    # Load CSV files
+    # Load the already prepared pickled datasets
     try:
-        profile_data = pd.read_csv('../Data/profile.txt')
-        labels_data = pd.read_csv('../Data/profiles_labels.txt')
-        print(f"Data loaded successfully: {profile_data.shape}, {labels_data.shape}")
-        return profile_data, labels_data
+        import os
+        import pickle
+        
+        # Get paths to the data directory
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(current_dir)
+        data_dir = os.path.join(project_root, 'Data')
+        
+        # Paths to pickled train/test data (SMOTE version)
+        x_train_path = os.path.join(data_dir, 'X_train_pickled_smote.pkl')
+        x_test_path = os.path.join(data_dir, 'X_test_pickled_smote.pkl')
+        y_train_path = os.path.join(data_dir, 'y_train_pickled_smote.pkl')
+        y_test_path = os.path.join(data_dir, 'y_test_pickled_smote.pkl')
+        
+        # Load the data directly
+        X_train = pd.read_pickle(x_train_path)
+        X_test = pd.read_pickle(x_test_path)
+        y_train = pd.read_pickle(y_train_path)
+        y_test = pd.read_pickle(y_test_path)
+        
+        print(f"SMOTE data loaded successfully")
+        print(f"Training set shape: {X_train.shape}, {y_train.shape}")
+        print(f"Test set shape: {X_test.shape}, {y_test.shape}")
+        
+        return X_train, X_test, y_train, y_test
     except Exception as e:
         print(f"Error loading data: {e}")
-        return None, None
+        return None, None, None, None
 
-def preprocess_data(profile_data, labels_data):
-    # Preprocessing steps
-    # Extracting features and target variable
-    X = profile_data.iloc[:, 1:]  # All feature columns
-    y = labels_data.iloc[:, 1]    # Target variable (second column in labels data)
-    
-    # Perform train-test split
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
-    )
-    
-    print(f"Training set shape: {X_train.shape}, {y_train.shape}")
-    print(f"Test set shape: {X_test.shape}, {y_test.shape}")
-    
-    return X_train, X_test, y_train, y_test
+# Note: apply_smote function removed as we're loading pre-processed SMOTE data directly
 
-def apply_smote(X_train, y_train):
-    # Apply SMOTE to handle class imbalance
-    smote = SMOTE(random_state=42)
-    X_train_smote, y_train_smote = smote.fit_resample(X_train, y_train)
-    
-    print(f"Original training set shape: {X_train.shape}, {y_train.shape}")
-    print(f"SMOTE-enhanced training set shape: {X_train_smote.shape}, {y_train_smote.shape}")
-    
-    # Print class distribution before and after SMOTE
-    print("Class distribution before SMOTE:")
-    print(pd.Series(y_train).value_counts())
-    print("\nClass distribution after SMOTE:")
-    print(pd.Series(y_train_smote).value_counts())
-    
-    return X_train_smote, y_train_smote
-
-def train_model(X_train, y_train):
-    # Logistic Regression CV model
-    model = LogisticRegressionCV(cv=5, max_iter=1000, random_state=1)
-    model.fit(X_train, y_train)
-    print("Model trained successfully")
-    return model
-
-def evaluate_model(model, X_test, y_test):
-    # Make predictions
-    y_pred = model.predict(X_test)
-    
-    # Calculate accuracy
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f"Accuracy: {accuracy:.4f}")
-    
-    # Classification report
-    report = classification_report(y_test, y_pred)
-    print("Classification Report:")
-    print(report)
-    
-    # Confusion matrix
-    cm = confusion_matrix(y_test, y_pred)
-    print("Confusion Matrix:")
-    print(cm)
-    
-    # Display confusion matrix
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
-    disp.plot()
-    plt.title('Confusion Matrix')
-    plt.show()
-    
-    return accuracy, report, cm
-
-def plot_roc_curve(model, X_test, y_test):
-    # ROC Curve
-    y_pred_proba = model.predict_proba(X_test)[:, 1]
-    fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba)
-    roc_auc = auc(fpr, tpr)
-    
-    plt.figure(figsize=(10, 8))
-    plt.plot(fpr, tpr, label=f'AUC = {roc_auc:.4f}')
-    plt.plot([0, 1], [0, 1], 'k--')
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('ROC Curve')
-    plt.legend(loc='lower right')
-    plt.show()
-    
-    return roc_auc
+# Functions train_model, evaluate_model, and plot_roc_curve are imported from model.py
 
 def main():
-    # Load data
-    profile_data, labels_data = load_data()
-    if profile_data is None or labels_data is None:
-        return
-    
-    # Preprocess data
-    X_train, X_test, y_train, y_test = preprocess_data(profile_data, labels_data)
-    
-    # Apply SMOTE
-    X_train_smote, y_train_smote = apply_smote(X_train, y_train)
-    
-    # Train model with SMOTE-enhanced data
-    model = train_model(X_train_smote, y_train_smote)
-    
-    # Evaluate model
-    accuracy, report, cm = evaluate_model(model, X_test, y_test)
-    
-    # Plot ROC Curve
-    roc_auc = plot_roc_curve(model, X_test, y_test)
-    
-    print(f"SMOTE-enhanced model training and evaluation completed. AUC: {roc_auc:.4f}")
+    try:
+        # Load data - returns train/test splits with SMOTE already applied
+        X_train, X_test, y_train, y_test = load_data()
+        if X_train is None:
+            return
+        
+        print("Starting SMOTE model training...")
+        # Train model (using function imported from model.py)
+        try:
+            model = train_model(X_train, y_train)
+            print("SMOTE model training successful")
+            
+            # Save the model using pickle
+            try:              
+                # Create models directory if it doesn't exist
+                models_dir = os.path.dirname(os.path.abspath(__file__))
+                os.makedirs(models_dir, exist_ok=True)
+                
+                # Save the model to a pickle file
+                model_path = os.path.join(models_dir, 'logistic_regression_tuned_smote_model.pkl')
+                with open(model_path, 'wb') as f:
+                    pickle.dump(model, f)
+                print(f"SMOTE model successfully saved to {model_path}")
+            except Exception as e:
+                print(f"Error saving SMOTE model: {e}")
+                traceback.print_exc()
+        except Exception as e:
+            print(f"Error during SMOTE model training: {e}")
+            traceback.print_exc()
+            return
+        
+        print("Starting SMOTE model evaluation...")
+        # Evaluate model (using function imported from model.py)
+        try:
+            accuracy, report, cm = evaluate_model(model, X_test, y_test)
+            print("SMOTE model evaluation successful")
+        except Exception as e:
+            print(f"Error during SMOTE model evaluation: {e}")
+            traceback.print_exc()
+            return
+        
+        print("Starting ROC curve plotting...")
+        # Plot ROC Curve (using function imported from model.py)
+        try:
+            # Setting interactive mode for matplotlib to prevent blocking
+            plt.ion()
+            roc_auc = plot_roc_curve(model, X_test, y_test)
+            print(f"SMOTE-enhanced model training and evaluation completed. AUC: {roc_auc:.4f}")
+            
+            # Save the ROC curve figure
+            figures_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'figures')
+            os.makedirs(figures_dir, exist_ok=True)
+            plt.savefig(os.path.join(figures_dir, 'smote_roc_curve.png'))
+            print(f"ROC curve saved to {os.path.join(figures_dir, 'smote_roc_curve.png')}")
+        except Exception as e:
+            print(f"Error during ROC curve plotting: {e}")
+            traceback.print_exc()
+    except Exception as e:
+        print(f"Unexpected error in main: {e}")
+        traceback.print_exc()
 
 if __name__ == "__main__":
     main()
