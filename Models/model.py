@@ -101,7 +101,7 @@ def train_model(X_train, y_train, n_iter=20, cv=5):
     print("\nBest model selected successfully")
     return random_search.best_estimator_
 
-def evaluate_model(model, X_test, y_test):
+def evaluate_model(model, X_test, y_test, model_name="standard"):
     # Make predictions
     y_pred = model.predict(X_test)
     
@@ -119,15 +119,46 @@ def evaluate_model(model, X_test, y_test):
     print("Confusion Matrix:")
     print(cm)
     
-    # Display confusion matrix
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm)
-    disp.plot()
-    plt.title('Confusion Matrix')
-    plt.show()
+    # Save classification report and confusion matrix to file
+    try:
+        import os
+        
+        # Create reports directory if it doesn't exist
+        reports_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'reports')
+        os.makedirs(reports_dir, exist_ok=True)
+        
+        # Save classification report
+        report_path = os.path.join(reports_dir, f'{model_name}_classification_report.txt')
+        with open(report_path, 'w') as f:
+            f.write(f"Model: {model_name}\n")
+            f.write(f"Accuracy: {accuracy:.4f}\n\n")
+            f.write("Classification Report:\n")
+            f.write(report)
+            f.write("\nConfusion Matrix:\n")
+            f.write(str(cm))
+        print(f"Classification report saved to {report_path}")
+        
+        # Save confusion matrix visualization
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm)
+        fig, ax = plt.subplots(figsize=(10, 8))
+        disp.plot(ax=ax)
+        plt.title(f'Confusion Matrix - {model_name} Model')
+        
+        # Save the confusion matrix figure
+        cm_fig_path = os.path.join(reports_dir, f'{model_name}_confusion_matrix.png')
+        plt.savefig(cm_fig_path)
+        print(f"Confusion matrix visualization saved to {cm_fig_path}")
+        
+        # Display confusion matrix (for interactive viewing)
+        plt.show()
+    except Exception as e:
+        print(f"Error saving evaluation results: {e}")
+        import traceback
+        traceback.print_exc()
     
     return accuracy, report, cm
 
-def plot_roc_curve(model, X_test, y_test):
+def plot_roc_curve(model, X_test, y_test, model_name="standard"):
     # ROC Curve
     y_pred_proba = model.predict_proba(X_test)[:, 1]
     fpr, tpr, thresholds = roc_curve(y_test, y_pred_proba)
@@ -138,7 +169,24 @@ def plot_roc_curve(model, X_test, y_test):
     plt.plot([0, 1], [0, 1], 'k--')
     plt.xlabel('False Positive Rate')
     plt.ylabel('True Positive Rate')
-    plt.title('ROC Curve')
+    plt.title(f'ROC Curve - {model_name} Model')
+    
+    # Save the ROC curve to reports folder
+    try:
+        import os
+        
+        # Create reports directory if it doesn't exist
+        reports_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'reports')
+        os.makedirs(reports_dir, exist_ok=True)
+        
+        # Save the ROC curve figure
+        roc_fig_path = os.path.join(reports_dir, f'{model_name}_roc_curve.png')
+        plt.savefig(roc_fig_path)
+        print(f"ROC curve saved to {roc_fig_path}")
+    except Exception as e:
+        print(f"Error saving ROC curve: {e}")
+        import traceback
+        traceback.print_exc()
     plt.legend(loc='lower right')
     plt.show()
     
@@ -184,7 +232,7 @@ def main():
         print("Starting model evaluation...")
         # Evaluate model
         try:
-            accuracy, report, cm = evaluate_model(model, X_test, y_test)
+            accuracy, report, cm = evaluate_model(model, X_test, y_test, model_name="standard_logistic_regression")
             print("Model evaluation successful")
         except Exception as e:
             print(f"Error during model evaluation: {e}")
@@ -197,11 +245,8 @@ def main():
         try:
             # Setting interactive mode for matplotlib to prevent blocking
             plt.ion()
-            roc_auc = plot_roc_curve(model, X_test, y_test)
-            # Save figure instead of showing it interactively
-            plt.savefig('roc_curve.png')
+            roc_auc = plot_roc_curve(model, X_test, y_test, model_name="standard_logistic_regression")
             plt.close()
-            print(f"ROC curve saved to roc_curve.png")
         except Exception as e:
             print(f"Error during ROC curve plotting: {e}")
             import traceback

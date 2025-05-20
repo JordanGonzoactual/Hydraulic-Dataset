@@ -80,7 +80,7 @@ def main():
         print("Starting SMOTE model evaluation...")
         # Evaluate model (using function imported from model.py)
         try:
-            accuracy, report, cm = evaluate_model(model, X_test, y_test)
+            accuracy, report, cm = evaluate_model(model, X_test, y_test, model_name="smote_logistic_regression")
             print("SMOTE model evaluation successful")
         except Exception as e:
             print(f"Error during SMOTE model evaluation: {e}")
@@ -92,14 +92,9 @@ def main():
         try:
             # Setting interactive mode for matplotlib to prevent blocking
             plt.ion()
-            roc_auc = plot_roc_curve(model, X_test, y_test)
+            roc_auc = plot_roc_curve(model, X_test, y_test, model_name="smote_logistic_regression")
+            plt.close()
             print(f"SMOTE-enhanced model training and evaluation completed. AUC: {roc_auc:.4f}")
-            
-            # Save the ROC curve figure
-            figures_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'figures')
-            os.makedirs(figures_dir, exist_ok=True)
-            plt.savefig(os.path.join(figures_dir, 'smote_roc_curve.png'))
-            print(f"ROC curve saved to {os.path.join(figures_dir, 'smote_roc_curve.png')}")
         except Exception as e:
             print(f"Error during ROC curve plotting: {e}")
             traceback.print_exc()
