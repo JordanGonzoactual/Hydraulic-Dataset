@@ -54,11 +54,11 @@
 
 **Standard Model PCA**
 
-![Standard PCA Plot](Data/eda/pca.png)
+![Standard PCA Plot](Data/EDA/pca.png)
 
 **SMOTE-Enhanced Model PCA**
 
-![SMOTE PCA Plot](Data/eda/pca_smote.png)
+![SMOTE PCA Plot](Data/EDA/pca_smote.png)
 
 The PCA plots provide a 2D representation of the high-dimensional sensor data, showing how well different classes separate in the reduced feature space. Key observations:
 
@@ -70,11 +70,11 @@ The PCA plots provide a 2D representation of the high-dimensional sensor data, s
 
 **Standard Model t-SNE**
 
-![Standard t-SNE Plot](Data/eda/tsne.png)
+![Standard t-SNE Plot](Data/EDA/tsne.png)
 
 **SMOTE-Enhanced Model t-SNE**
 
-![SMOTE t-SNE Plot](Data/eda/tsne_smote.png)
+![SMOTE t-SNE Plot](Data/EDA/tsne_smote.png)
 
 The t-SNE visualizations offer a non-linear dimensionality reduction that preserves local structure, revealing:
 
@@ -86,11 +86,11 @@ The t-SNE visualizations offer a non-linear dimensionality reduction that preser
 
 **Standard Model DBSCAN**
 
-![Standard DBSCAN t-SNE Plot](Data/eda/dbscan_tsne.png)
+![Standard DBSCAN t-SNE Plot](Data/EDA/dbscan_tsne.png)
 
 **SMOTE-Enhanced Model DBSCAN**
 
-![SMOTE DBSCAN t-SNE Plot](Data/eda/dbscan_tsne_smote.png)
+![SMOTE DBSCAN t-SNE Plot](Data/EDA/dbscan_tsne_smote.png)
 
 Density-based spatial clustering of applications with noise (DBSCAN) applied to t-SNE dimensions reveals:
 
