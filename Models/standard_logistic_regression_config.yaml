@@ -1,0 +1,17 @@
+model_name: standard_logistic_regression
+performance:
+  confusion_matrix:
+    false_negatives: 7
+    false_positives: 5
+    true_negatives: 289
+    true_positives: 140
+  f1_score: 0.9589041095890412
+  precision: 0.9655172413793104
+  recall: 0.9523809523809523
+threshold:
+  metric_target:
+    min_recall: 0.95
+    optimization: max_f1_with_min_recall
+  value: 0.0036444629076868296
+timestamp: '2025-05-20T14:58:06.207729'
+version: 1.0.0

@@ -1,0 +1,16 @@
+Model: standard_logistic_regression with Optimal Threshold
+Accuracy: 0.9728
+
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.98      0.98      0.98       294
+           1       0.97      0.95      0.96       147
+
+    accuracy                           0.97       441
+   macro avg       0.97      0.97      0.97       441
+weighted avg       0.97      0.97      0.97       441
+
+Confusion Matrix:
+[[289   5]
+ [  7 140]]

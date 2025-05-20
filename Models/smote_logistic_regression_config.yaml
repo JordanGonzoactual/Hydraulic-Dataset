@@ -1,0 +1,17 @@
+model_name: smote_logistic_regression
+performance:
+  confusion_matrix:
+    false_negatives: 7
+    false_positives: 17
+    true_negatives: 277
+    true_positives: 140
+  f1_score: 0.9210526315789473
+  precision: 0.89171974522293
+  recall: 0.9523809523809523
+threshold:
+  metric_target:
+    min_recall: 0.95
+    optimization: max_f1_with_min_recall
+  value: 0.0009718830115161836
+timestamp: '2025-05-20T14:58:06.931146'
+version: 1.0.0
